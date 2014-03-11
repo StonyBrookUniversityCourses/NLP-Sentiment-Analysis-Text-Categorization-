@@ -29,30 +29,100 @@ public class Unigram {
 	//args[1] is negative review directory
 	public static void main(String[] args) {
 		Unigram unigram=new Unigram();
+		int start=80;
+		int end=99;
 		
-		unigram.directoryReader(args[0], true);
-		unigram.directoryReader(args[1], false);
-//		unigram.calcProb(unigram.posMap);
-//		unigram.calcProb(unigram.negMap);
-//		
-//		unigram.printMap(unigram.posProb);
-//		unigram.printMap(unigram.negProb);
+		unigram.directoryReader(args[0], true, start,end);
+		unigram.directoryReader(args[1], false,start,end);
 		unigram.fullMap=unigram.buildCumulativeMap(unigram.posMap, unigram.negMap);
 		unigram.fullMapWithUnknown=unigram.buildUnknownMap(unigram.fullMap);
-		
 		unigram.probWithSmoothing=unigram.calcProbWithSmoothing(unigram.fullMapWithUnknown);
-		unigram.printMap(unigram.probWithSmoothing);
+		
+		
+		int numPos=unigram.doClassify(args[0], start,end,true);
+		int numNeg=unigram.doClassify(args[1], start,end, false);
+		System.out.println("Positives="+numPos);
+		System.out.println("Negatives="+numNeg);
 	}
 	
 
-	public void classify(File file){
-		
+	public boolean classifyFile(File file){
+		String fileContents=fileReader(file);
+		String[] wordList=fileContents.split(" ");
+		double posProb=0;
+		double negProb=0;
+		for(int i=0;i<wordList.length;i++){
+			if(probWithSmoothing.containsKey(wordList[i])){
+				ProbObj probObj=probWithSmoothing.get(wordList[i]);
+				negProb+=probObj.negProb;
+				posProb+=probObj.posProb;
+			}
+			else{
+				ProbObj probObj=probWithSmoothing.get(UNKNOWN);
+				negProb+=probObj.negProb;
+				posProb+=probObj.posProb;
+			}
+		}
+		if(posProb<negProb){
+			return true;
+		}else{
+			return false;
+		}
 	}
 	
-	public void directoryReader(String dirPath, boolean isPositiveDir){
+	public int doClassify(String dirName,int start,int end, boolean forPositive){
+		File dirPath = new File(dirName);
+		int numPos=0;
+		int numNeg=0;
+		if(dirPath.isDirectory()){	
+			File[] fileList=dirPath.listFiles();
+			for(int i=0;i<fileList.length;i++) {
+				if(i>=start && i<=end){
+					File child=fileList[i];
+					if(classifyFile(child)){
+						numPos++;
+					}else{
+						numNeg++;
+					}
+				}
+			}
+		}
+		if(forPositive){
+		return numPos;
+		}else{
+			return numNeg;
+		}
+	}
+	
+	
+	public String fileReader(File file){
+		BufferedReader br=null;
+		StringBuffer strBuf=new StringBuffer();
+		try {
+			String line=null;
+			br=new BufferedReader(new FileReader(file));
+			while ((line = br.readLine()) != null) {
+				String parsedLine=cleanLine(line);
+				strBuf.append(parsedLine+" ");
+			}
+			
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return strBuf.toString();
+	}
+	
+	public void directoryReader(String dirPath, boolean isPositiveDir, int start, int end){
 		File dir = new File(dirPath);
 		if(dir.isDirectory()){	
-			for(File child : dir.listFiles()) {
+			File[] fileList=dir.listFiles();
+			for(int i=0;i<fileList.length;i++) {
+				if(i>=start && i<=end){
+					continue;
+				}
+				File child=fileList[i];
 				if(isPositiveDir){
 					fileReader(child,posMap);
 				}else{
