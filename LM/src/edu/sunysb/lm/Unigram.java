@@ -25,26 +25,35 @@ public class Unigram {
 
 	public static void main(String[] args) {
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
-		Unigram unigram = new Unigram();
-		int start = 800;
-		int end = 999;
-		int totalTest = end - start + 1;
-		unigram.directoryReader(folders[0], true, start, end);
-		unigram.directoryReader(folders[1], false, start, end);
-		unigram.fullMap = unigram.buildCumulativeMap(unigram.posMap,
-				unigram.negMap);
-		unigram.fullMapWithUnknown = unigram.buildUnknownMap(unigram.fullMap);
-		unigram.probWithSmoothing = unigram
-				.calcProbWithSmoothing(unigram.fullMapWithUnknown);
+		for (int i = 0; i < 5; i++) {
+			Unigram unigram = new Unigram();
+			int start = i*200;
+			int end = start + 199;
+			System.out.println("\nTest Data from: " + start + " - " + end);
+			int totalTest = end - start + 1;
+			unigram.directoryReader(folders[0], true, start, end);
+			unigram.directoryReader(folders[1], false, start, end);
+			unigram.fullMap = unigram.buildCumulativeMap(unigram.posMap,
+					unigram.negMap);
+			unigram.fullMapWithUnknown = unigram
+					.buildUnknownMap(unigram.fullMap);
+			unigram.probWithSmoothing = unigram
+					.calcProbWithSmoothing(unigram.fullMapWithUnknown);
 
-		int positiveSuccess = unigram.doClassify(folders[0], start, end, true);
-		int negSuccess = unigram.doClassify(folders[1], start, end, false);
-		System.out.println("Positives=" + positiveSuccess + ", percent success: " + (positiveSuccess*100.0)/totalTest );
-		System.out.println("Negatives=" + negSuccess + ", percent success: " + (negSuccess*100.0)/totalTest);
+			int positiveSuccess = unigram.doClassify(folders[0], start, end,
+					true);
+			int negSuccess = unigram.doClassify(folders[1], start, end, false);
+			System.out.println("Positives=" + positiveSuccess
+					+ ", percent success: " + (positiveSuccess * 100.0)
+					/ totalTest);
+			System.out.println("Negatives=" + negSuccess
+					+ ", percent success: " + (negSuccess * 100.0) / totalTest);
+		}
 	}
 
 	/**
 	 * Classifies file returns if file belongs to positive or negative class
+	 *
 	 * @param file
 	 * @return
 	 */
@@ -64,11 +73,12 @@ public class Unigram {
 			negProb += probObj.negProb;
 			posProb += probObj.posProb;
 		}
-		return (posProb >  negProb);
+		return (posProb > negProb);
 	}
 
 	/**
 	 * Classifies test data and returns the success count
+	 *
 	 * @param dirName
 	 * @param start
 	 * @param end
@@ -172,6 +182,7 @@ public class Unigram {
 
 	/**
 	 * Calculates Probability
+	 *
 	 * @param map
 	 */
 	public void calcProb(HashMap<String, Integer> map) {
