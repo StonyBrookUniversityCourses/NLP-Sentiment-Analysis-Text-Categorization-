@@ -35,9 +35,19 @@ public class Bigram {
 						bigram.negMap);
 				bigram.fullMapWithUnknown = Helper
 						.buildUnknownMap(bigram.fullMap);
+				
+				Unigram unigram=new Unigram();
+				unigram.directoryReader(folders[0], true, start, end);
+				unigram.directoryReader(folders[1], false, start, end);
+				unigram.fullMap = Helper.buildCumulativeMap(unigram.posMap, unigram.negMap);
+				unigram.fullMapWithUnknown = Helper
+						.buildUnknownMap(unigram.fullMap);
+				
 				bigram.probWithSmoothing = Helper
-						.calcProbWithSmoothing(bigram.fullMapWithUnknown);
-	
+						.calcProbWithSmoothing(bigram.fullMapWithUnknown,unigram.fullMapWithUnknown);
+				//bigram.probWithSmoothing = Helper
+					//	.calcProbWithSmoothing(bigram.fullMap,unigram.fullMap);
+				
 				int positiveSuccess = bigram.doClassify(folders[0], start, end,
 						true);
 				int negSuccess = bigram.doClassify(folders[1], start, end, false);
@@ -67,6 +77,7 @@ public class Bigram {
 					probObj = probWithSmoothing.get(wordList[i]+" "+wordList[i+1]);
 
 				} else {
+					//continue;
 					probObj = probWithSmoothing.get(Helper.UNKNOWN);
 				}
 				negProb += probObj.negProb;

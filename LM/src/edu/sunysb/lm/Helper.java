@@ -73,6 +73,39 @@ public class Helper {
 		return probWithSmoothing;
 
 	}
+	
+	public static HashMap<String, Probability> calcProbWithSmoothing(
+			HashMap<String, Count> bimap, HashMap<String, Count> unimap) {
+		HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
+		int posWords = Helper.countWords(bimap, true);
+		int negWords = Helper.countWords(bimap, false);
+		int totalVocab = Helper.countUniqueWords(bimap);
+		//System.out.println(totalVocab);
+		Set<String> keySet = bimap.keySet();
+		Iterator<String> iter = keySet.iterator();
+		while (iter.hasNext()) {
+			String key = iter.next();
+			String firstWord=key.split(" ")[0];
+			Count countObj = bimap.get(key);
+			Count uniCountObj=null;
+			if(unimap.containsKey(firstWord)){
+				uniCountObj=unimap.get(firstWord);
+			}else{
+				//continue;
+				uniCountObj=unimap.get(UNKNOWN);
+			}
+			
+			double posProb = Math.log((countObj.posCount + 1) * 1.0
+					/ (uniCountObj.posCount + totalVocab));
+			double negProb = Math.log((countObj.negCount + 1) * 1.0
+					/ (uniCountObj.negCount + totalVocab));
+			Probability probObj = new Probability(posProb, negProb);
+			probWithSmoothing.put(key, probObj);
+		}
+		return probWithSmoothing;
+
+	}
+	
 
 	public static HashMap<String, Count> buildCumulativeMap(
 			HashMap<String, Integer> posMap, HashMap<String, Integer> negMap) {
