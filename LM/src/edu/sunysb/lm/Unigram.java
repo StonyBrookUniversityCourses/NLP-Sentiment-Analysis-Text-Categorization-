@@ -13,6 +13,7 @@ public class Unigram {
 	HashMap<String, Integer> negMap = new HashMap<String, Integer>();
 	HashMap<String, Double> posProb = new HashMap<String, Double>();
 	HashMap<String, Double> negProb = new HashMap<String, Double>();
+	
 	int totalPosWords = 0;
 	int totalNegWords = 0;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
