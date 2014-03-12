@@ -25,7 +25,7 @@ public class Unigram {
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
 	HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
 	HashMap<String,Integer> weightMap=new HashMap<String, Integer>();
-
+	public final boolean COUNTBASED=false;
 	public static void main(String[] args) throws IOException {
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
 		//File dir = new File("outputs");
@@ -44,8 +44,9 @@ public class Unigram {
 
 			int positiveSuccess = unigram.doClassify(folders[0], true, start, end);
 			int negSuccess = unigram.doClassify(folders[1], false,start, end);
-			
 			int totalTest = end - start + 1;
+			
+			
 			
 			System.out.println("Positives=" + positiveSuccess
 					+ ", percent success: " + (positiveSuccess * 100.0)
@@ -83,7 +84,7 @@ public class Unigram {
 	}
 
 	public int doClassify(String dirName, boolean isPositive, int start, int end){//,
-			//ArrayList<HashMap<String, Integer>> testingSet) {
+		//ArrayList<HashMap<String, Integer>> testingSet) {
 		File dirPath = new File(dirName);
 		int numPos=0;
 		int numNeg=0;
@@ -96,8 +97,12 @@ public class Unigram {
 				String fileContents = Helper.fileReader(child);
 				String[] wordList = fileContents.split(" ");
 				for(String word:wordList){
-					if(features.containsKey(word)){
-						features.put(word,features.get(word)+1);
+					if(COUNTBASED){
+						if(features.containsKey(word)){
+							features.put(word,features.get(word)+1);
+						}else{
+							features.put(word, 1);
+						}
 					}else{
 						features.put(word, 1);
 					}
@@ -173,8 +178,12 @@ public class Unigram {
 				String parsedLine = Helper.cleanLine(line);
 				String[] wordList = parsedLine.split(" ");
 				for (int i = 0; i < wordList.length; i++) {
-					if(words.containsKey(wordList[i])){
-						words.put(wordList[i],words.get(wordList[i])+1);
+					if(COUNTBASED){
+						if(words.containsKey(wordList[i])){
+							words.put(wordList[i],words.get(wordList[i])+1);
+						}else{
+							words.put(wordList[i], 1);
+						}
 					}else{
 						words.put(wordList[i], 1);
 					}
