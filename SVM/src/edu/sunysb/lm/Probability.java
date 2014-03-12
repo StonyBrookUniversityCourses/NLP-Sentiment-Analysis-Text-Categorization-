@@ -1,8 +1,5 @@
 package edu.sunysb.lm;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Set;
 
 class Probability {
 	double posProb;
@@ -19,6 +16,6 @@ class Probability {
 
 	}
 
-	
+
 
 }

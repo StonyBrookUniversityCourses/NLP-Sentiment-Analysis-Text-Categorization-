@@ -46,21 +46,21 @@ public class Helper {
 
 	public static void createOutput(ArrayList<HashSet<String>> featureArray,
 			HashMap<String, Count> featureMap,
-			String outfile, String className) throws IOException {
+			String outfile, String className, boolean presence) throws IOException {
 		FileWriter fileWriter = new FileWriter(outfile, true);
 		BufferedWriter bw = new BufferedWriter(fileWriter);
 		for(HashSet<String> featureSet:featureArray){
 			bw.write(className + " ");
-			ArrayList<Integer> indexes = new ArrayList<Integer>();
+			ArrayList<Features> features = new ArrayList<Features>();
 			for(String str : featureSet) {
 				if(featureMap.containsKey(str)) {
-					indexes.add(featureMap.get(str).index);
+					features.add(new Features(featureMap.get(str).index, presence?1:featureMap.get(str).count));
 
 				}
 			}
-			Collections.sort(indexes);
-			for(int index : indexes)
-				bw.write(index + ":1 ");
+			Collections.sort(features);
+			for(Features feature : features)
+				bw.write(feature.index + ":" + feature.value + " ");
 			bw.write("\n");
 		}
 
@@ -99,6 +99,20 @@ public class Helper {
 			T val = (T) map.get(key);
 			System.out.println(key + " " + val);
 		}
+	}
+
+	static class Features implements Comparable<Features>{
+		Integer index;
+		int value;
+		@Override
+		public int compareTo(Features o) {
+			return index.compareTo(o.index);
+		}
+		public Features(Integer index, int value) {
+			this.index = index;
+			this.value = value;
+		}
+
 	}
 
 }
