@@ -52,7 +52,10 @@ public class Unigram {
 					"outputs/test_" + i + ".t", "-1");
 
 			svm_train svm_train = new svm_train();
-			svm_train.run(new String[]{"outputs/train_" + i, "outputs/train_" + i + ".model"});
+			svm_train.run(new String[]{"-t", "0" ,"outputs/train_" + i, "outputs/train_" + i + ".model"});
+			svm_predict.main(new String[]{"outputs/test_" + i + ".t", "outputs/train_" + i + ".model", "outputs/testout_" + i});
+
+			svm_train.run(new String[]{"-s", "1", "-t", "0" ,"outputs/train_" + i, "outputs/train_" + i + ".model"});
 			svm_predict.main(new String[]{"outputs/test_" + i + ".t", "outputs/train_" + i + ".model", "outputs/testout_" + i});
 
 		}
