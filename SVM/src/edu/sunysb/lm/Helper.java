@@ -44,17 +44,17 @@ public class Helper {
 		return map.size();
 	}
 
-	public static void createOutput(ArrayList<HashSet<String>> featureArray,
+	public static void createOutput(ArrayList<HashMap<String, Integer>> featureArray,
 			HashMap<String, Count> featureMap,
 			String outfile, String className, boolean presence) throws IOException {
 		FileWriter fileWriter = new FileWriter(outfile, true);
 		BufferedWriter bw = new BufferedWriter(fileWriter);
-		for(HashSet<String> featureSet:featureArray){
+		for(HashMap<String, Integer> featureSet:featureArray){
 			bw.write(className + " ");
 			ArrayList<Features> features = new ArrayList<Features>();
-			for(String str : featureSet) {
+			for(String str : featureSet.keySet()) {
 				if(featureMap.containsKey(str)) {
-					features.add(new Features(featureMap.get(str).index, presence?1:featureMap.get(str).count));
+					features.add(new Features(featureMap.get(str).index, presence?1:featureSet.get(str)));
 
 				}
 			}
