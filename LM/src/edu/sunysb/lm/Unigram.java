@@ -13,7 +13,7 @@ public class Unigram {
 	HashMap<String, Integer> negMap = new HashMap<String, Integer>();
 	HashMap<String, Double> posProb = new HashMap<String, Double>();
 	HashMap<String, Double> negProb = new HashMap<String, Double>();
-	
+
 	int totalPosWords = 0;
 	int totalNegWords = 0;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
@@ -45,6 +45,8 @@ public class Unigram {
 					/ totalTest);
 			System.out.println("Negatives=" + negSuccess
 					+ ", percent success: " + (negSuccess * 100.0) / totalTest);
+			System.out.println("Total Success=" + (negSuccess + positiveSuccess)
+					+ ", percent success: " + ((negSuccess + positiveSuccess) * 100.0) / (totalTest*2));
 		}
 	}
 
