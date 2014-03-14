@@ -1,4 +1,4 @@
-package edu.sunysb.lm;
+package edu.sunysb.perceptron;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;

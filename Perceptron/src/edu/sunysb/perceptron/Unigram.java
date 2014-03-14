@@ -1,4 +1,4 @@
-package edu.sunysb.lm;
+package edu.sunysb.perceptron;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -7,7 +7,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -21,10 +20,11 @@ public class Unigram {
 	ArrayList<HashMap<String,Integer>> negativeTestingSet = new ArrayList<HashMap<String,Integer>>();
 	int totalPosWords = 0;
 	int totalNegWords = 0;
+	double learningRate = 1;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
 	HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
-	HashMap<String,Integer> weightMap=new HashMap<String, Integer>();
+	HashMap<String,Double> weightMap=new HashMap<String, Double>();
 	public final boolean COUNTBASED=false;
 	public static void main(String[] args) throws IOException {
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
@@ -35,19 +35,17 @@ public class Unigram {
 			int start = i * 200;
 			int end = start + 199;
 			System.out.println("\nTest Data from: " + start + " - " + end);
-			unigram.directoryReader(folders[1], false, start, end);
-			unigram.directoryReader(folders[0], true, start, end);
-			
-			Helper.printMap(unigram.weightMap);
+			unigram.directoryReader(folders[0],folders[1], start, end);
+
 			//int posAccuracy=unigram.doClassify(folders[0], true, start, end);//, unigram.positiveTestingSet);
 			//int negAccuracy=unigram.doClassify(folders[1], false, start, end);//, unigram.negativeTestingSet);
 
 			int positiveSuccess = unigram.doClassify(folders[0], true, start, end);
 			int negSuccess = unigram.doClassify(folders[1], false,start, end);
 			int totalTest = end - start + 1;
-			
-			
-			
+
+
+
 			System.out.println("Positives=" + positiveSuccess
 					+ ", percent success: " + (positiveSuccess * 100.0)
 					/ totalTest);
@@ -55,8 +53,8 @@ public class Unigram {
 					+ ", percent success: " + (negSuccess * 100.0) / totalTest);
 			System.out.println("Total Success=" + (negSuccess + positiveSuccess)
 					+ ", percent success: " + ((negSuccess + positiveSuccess) * 100.0) / (totalTest*2));
-			
-			
+
+
 //			Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
 //					"outputs/train_" + i , "+1", true);
 //			Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
@@ -67,7 +65,7 @@ public class Unigram {
 //			Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
 //					"outputs/test_" + i + ".t", "-1", true);
 
-			
+
 			//for(File file: dir.listFiles()) file.delete();
 			//System.out.println("\nCalculating with Frequency");
 //			Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
@@ -136,47 +134,48 @@ public class Unigram {
 			if(weightMap.containsKey(key)){
 				categoryNum+=weightMap.get(key)*val;
 			}
-			//else{
-			//	categoryNum+=weightMap.get(key)*0;
-			//}
-		}	
+		}
 		if(categoryNum>=0)
 			return true;
 		else
 			return false;
 	}
 
-	public void directoryReader(String dirPath, boolean isPositiveDir,
+	public void directoryReader(String positiveFolder, String negativeFolder,
 			int start, int end) {
-		File dir = new File(dirPath);
-		if (dir.isDirectory()) {
-			File[] fileList = dir.listFiles();
-			for (int i = 0; i < fileList.length; i++) {
+		File posdir = new File(positiveFolder);
+		File negdir = new File(negativeFolder);
+		File[] posfileList = posdir.listFiles();
+		File[] negfileList = negdir.listFiles();
+		double err = 0;
+		int itr = 0;
+		do {
+			err = 0;
+			System.out.println("Iteration: " + itr++);
+			for (int i = 0; i < posfileList.length; i++) {
 				if (i >= start && i <= end) {
 					continue;
 				}
-				File child = fileList[i];
-				if (isPositiveDir) {
-					fileReader(child, positiveTrainingSet,isPositiveDir);
-				} else {
-					fileReader(child, negativeTrainingSet,isPositiveDir);
-				}
+				File poschild = posfileList[i];
+				File negchild = negfileList[i];
+				err += Math.abs(fileReader(negchild, negativeTrainingSet,false));
+				err += Math.abs(fileReader(poschild, positiveTrainingSet,true));
 
 			}
-		}
+		}while(err / (posfileList.length * 2 - 2* (start -end +1))  > 1);
 	}
 
-	public void fileReader(File file, ArrayList<HashMap<String,Integer>> trainingSet, boolean isPositive) {
+	public double fileReader(File file, ArrayList<HashMap<String,Integer>> trainingSet, boolean isPositive) {
 		BufferedReader br = null;
 		try {
 			String line = null;
 			HashMap<String,Integer> words = new HashMap<String,Integer>();
 			FileReader fr = new FileReader(file);
 			br = new BufferedReader(fr);
-			int categoryNum=0;
+			double categoryNum=0;
 			while ((line = br.readLine()) != null) {
 				String parsedLine = Helper.cleanLine(line);
-				String[] wordList = parsedLine.split(" ");
+				String[] wordList = parsedLine.split("\\s");
 				for (int i = 0; i < wordList.length; i++) {
 					if(COUNTBASED){
 						if(words.containsKey(wordList[i])){
@@ -197,53 +196,30 @@ public class Unigram {
 				if(weightMap.containsKey(key)){
 					categoryNum+=weightMap.get(key)*val;
 				}
-				//else{
-				//	categoryNum+=weightMap.get(key)*0;
-				//}
-			}	
-			trainingSet.add(words);
-			boolean isCorrect=true;
-			if(categoryNum>=0){
-				isCorrect=isCorrectlyClassified(true,isPositive);
-				if(isCorrect==false){
-					//subtract
-					keySet = words.keySet();
-					iter = keySet.iterator();
-					while (iter.hasNext()) {
-						String key = iter.next();
-						int val = words.get(key);
-						if(weightMap.containsKey(key)){
-							weightMap.put(key, weightMap.get(key)-val);
-						}else{
-							weightMap.put(key, 0-val);
-						}
-					}	
-				}
-			}else{
-				isCorrect=isCorrectlyClassified(false,isPositive);
-				if(isCorrect==false){
-					//add
-					keySet = words.keySet();
-					iter = keySet.iterator();
-					while (iter.hasNext()) {
-						String key = iter.next();
-						int val = words.get(key);
-						if(weightMap.containsKey(key)){
-							weightMap.put(key, weightMap.get(key)+val);
-						}else{
-							weightMap.put(key, 0+val);
-						}
-					}	
+			}
+			double correction = learningRate * ((isPositive? 1 : -1 ) - categoryNum/words.size());
+			keySet = words.keySet();
+			iter = keySet.iterator();
+			while (iter.hasNext()) {
+				String key = iter.next();
+				int val = words.get(key);
+				if(correction > 100)
+					System.out.println(correction*val);
+				if(weightMap.containsKey(key)){
+					weightMap.put(key, weightMap.get(key) + correction*val);
+				}else{
+					weightMap.put(key, 0 + correction*val);
 				}
 			}
 			br.close();
 			fr.close();
+			return (correction/learningRate);
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-
+		return 0;
 	}
 
 	public boolean isCorrectlyClassified(boolean predicted, boolean actual) {
