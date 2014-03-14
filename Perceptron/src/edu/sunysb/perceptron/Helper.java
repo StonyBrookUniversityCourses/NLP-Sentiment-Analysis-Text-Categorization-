@@ -23,7 +23,7 @@ public class Helper {
 		String parsedLine = line.replaceAll("[^a-zA-Z0-9\\s]", "").replaceAll(
 				" +", " ");
 		// System.out.println(parsedLine);
-		return parsedLine;
+		return parsedLine.toLowerCase();
 	}
 
 	public static int countWords(HashMap<String, Integer> map) {
