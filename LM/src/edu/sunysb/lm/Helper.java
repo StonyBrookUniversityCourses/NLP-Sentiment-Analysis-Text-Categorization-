@@ -63,10 +63,16 @@ public class Helper {
 		while (iter.hasNext()) {
 			String key = iter.next();
 			Count countObj = map.get(key);
-			double posProb = Math.log((countObj.posCount + 1) * 1.0
-					/ (posWords + totalVocab));
-			double negProb = Math.log((countObj.negCount + 1) * 1.0
-					/ (negWords + totalVocab));
+			
+			//double posProb = Math.log((countObj.posCount + 1) * 1.0
+				//	/ (posWords + totalVocab));
+			//double negProb = Math.log((countObj.negCount + 1) * 1.0
+				//	/ (negWords + totalVocab));
+			double posProb = Math.log((countObj.posCount) * 1.0
+					/ (posWords));
+			double negProb = Math.log((countObj.negCount) * 1.0
+					/ (negWords));
+			
 			Probability probObj = new Probability(posProb, negProb);
 			probWithSmoothing.put(key, probObj);
 		}
@@ -87,10 +93,16 @@ public class Helper {
 			Count countObj = bimap.get(key);
 			Count uniCountObj = unimap.get(firstWord);
 
-			double posProb = Math.log((countObj.posCount + 1) * 1.0
-					/ (uniCountObj.posCount + totalVocab));
-			double negProb = Math.log((countObj.negCount + 1) * 1.0
-					/ (uniCountObj.negCount + totalVocab));
+//			double posProb = Math.log((countObj.posCount + 1) * 1.0
+//					/ (uniCountObj.posCount + totalVocab));
+//			double negProb = Math.log((countObj.negCount + 1) * 1.0
+//					/ (uniCountObj.negCount + totalVocab));
+			
+			double posProb = Math.log((countObj.posCount) * 1.0
+					/ (uniCountObj.posCount));
+			double negProb = Math.log((countObj.negCount) * 1.0
+					/ (uniCountObj.negCount));
+			
 			Probability probObj = new Probability(posProb, negProb);
 			probWithSmoothing.put(key, probObj);
 		}

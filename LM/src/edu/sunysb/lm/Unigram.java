@@ -30,6 +30,7 @@ public class Unigram {
 			int totalTest = end - start + 1;
 			unigram.directoryReader(folders[0], true, start, end);
 			unigram.directoryReader(folders[1], false, start, end);
+			
 			unigram.fullMap = Helper.buildCumulativeMap(unigram.posMap,
 					unigram.negMap);
 			unigram.fullMapWithUnknown = Helper
