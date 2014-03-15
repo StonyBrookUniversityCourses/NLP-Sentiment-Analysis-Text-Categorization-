@@ -1,9 +1,11 @@
 package edu.sunysb.lm;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -15,11 +17,23 @@ public class Bigram {
 	HashMap<String, Double> negProb = new HashMap<String, Double>();
 	int totalPosWords = 0;
 	int totalNegWords = 0;
+	BufferedWriter errorFiles;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
 	HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
 
-	public static void main(String args[]) {
+	public Bigram() {
+		try {
+			FileWriter fw = new FileWriter("bierrFiles", true);
+			errorFiles = new BufferedWriter(fw);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void main(String args[]) throws IOException {
 
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
 		for (int i = 0; i < 5; i++) {
@@ -99,9 +113,10 @@ public class Bigram {
 	 * @param end
 	 * @param forPositive
 	 * @return
+	 * @throws IOException
 	 */
 	public int doClassify(String dirName, int start, int end,
-			boolean forPositive) {
+			boolean forPositive) throws IOException {
 		File dirPath = new File(dirName);
 		int successCount = 0;
 		if (dirPath.isDirectory()) {
@@ -111,9 +126,13 @@ public class Bigram {
 					File child = fileList[i];
 					if (classifyFile(child) == forPositive) {
 						successCount++;
+					}else {
+						errorFiles.write(child.getCanonicalPath());
+						errorFiles.write("\n");
 					}
 				}
 			}
+			errorFiles.flush();
 		}
 		return successCount;
 	}

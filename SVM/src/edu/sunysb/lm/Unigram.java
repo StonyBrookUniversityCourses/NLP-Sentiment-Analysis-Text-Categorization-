@@ -26,68 +26,64 @@ public class Unigram {
 	public static void main(String[] args) throws IOException {
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
 		File dir = new File("outputs");
-		for (File file : dir.listFiles())
-			file.delete();
-		for (int i = 0; i < 5; i++) {
-			Unigram unigram = new Unigram();
-			int start = i * 200;
-			int end = start + 199;
-			System.out.println("\nTest Data from: " + start + " - " + end);
-			unigram.directoryReader(folders[0], true, start, end);
-			unigram.directoryReader(folders[1], false, start, end);
-
-			unigram.createTestData(folders[0], start, end,
-					unigram.positiveTestingSet);
-			unigram.createTestData(folders[1], start, end,
-					unigram.negativeTestingSet);
-
-			System.out.println("Calculating with Presence");
-			Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
-					"outputs/train_" + i, "+1", true);
-			Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
-					"outputs/train_" + i, "-1", true);
-
-			Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
-					"outputs/test_" + i + ".t", "+1", true);
-			Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
-					"outputs/test_" + i + ".t", "-1", true);
-
-			svm_train svm_train = new svm_train();
-			svm_train.run(new String[] { "-t", "0", "outputs/train_" + i,
-					"outputs/train_" + i + ".model" });
-			svm_predict.main(new String[] { "outputs/test_" + i + ".t",
-					"outputs/train_" + i + ".model", "outputs/testout_" + i });
-
-			svm_train = new svm_train();
-			svm_train.run(new String[] { "-s", "1", "-t", "0",
-					"outputs/train_" + i, "outputs/train_" + i + ".model" });
-			svm_predict.main(new String[] { "outputs/test_" + i + ".t",
-					"outputs/train_" + i + ".model", "outputs/testout_" + i });
-
+		String costs[] = {"1", "10", "20", "30", "50", "100"};
+		for(String cost:costs) {
+			System.out.println("------------------------------------------------");
+			System.out.println("Cost: " + cost);
 			for (File file : dir.listFiles())
 				file.delete();
-			System.out.println("\nCalculating with Frequency");
-			Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
-					"outputs/train_" + i, "+1", false);
-			Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
-					"outputs/train_" + i, "-1", false);
+			for (int i = 0; i < 5; i++) {
+				Unigram unigram = new Unigram();
+				int start = i * 200;
+				int end = start + 199;
+				System.out.println("\nTest Data from: " + start + " - " + end);
+				unigram.directoryReader(folders[0], true, start, end);
+				unigram.directoryReader(folders[1], false, start, end);
 
-			Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
-					"outputs/test_" + i + ".t", "+1", false);
-			Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
-					"outputs/test_" + i + ".t", "-1", false);
+				unigram.createTestData(folders[0], start, end,
+						unigram.positiveTestingSet);
+				unigram.createTestData(folders[1], start, end,
+						unigram.negativeTestingSet);
 
-			svm_train = new svm_train();
-			svm_train.run(new String[] { "-t", "0", "outputs/train_" + i,
-					"outputs/train_" + i + ".model" });
-			svm_predict.main(new String[] { "outputs/test_" + i + ".t",
-					"outputs/train_" + i + ".model", "outputs/testout_" + i });
+				System.out.println("Calculating with Presence");
+				Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
+						"outputs/train_" + i, "+1", true);
+				Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
+						"outputs/train_" + i, "-1", true);
 
-			svm_train = new svm_train();
-			svm_train.run(new String[] { "-s", "1", "-t", "0",
-					"outputs/train_" + i, "outputs/train_" + i + ".model" });
-			svm_predict.main(new String[] { "outputs/test_" + i + ".t",
-					"outputs/train_" + i + ".model", "outputs/testout_" + i });
+				Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
+						"outputs/test_" + i + ".t", "+1", true);
+				Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
+						"outputs/test_" + i + ".t", "-1", true);
+
+				svm_train svm_train = new svm_train();
+				svm_train = new svm_train();
+				svm_train.run(new String[] { "-q", "-t", "0", "-c", cost , "outputs/train_" + i,
+						"outputs/train_" + i + ".model" });
+				svm_predict.main(new String[] { "outputs/test_" + i + ".t",
+						"outputs/train_" + i + ".model", "outputs/testout_" + i });
+
+
+				for (File file : dir.listFiles())
+					file.delete();
+				System.out.println("\nCalculating with Frequency");
+				Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
+						"outputs/train_" + i, "+1", false);
+				Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
+						"outputs/train_" + i, "-1", false);
+
+				Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
+						"outputs/test_" + i + ".t", "+1", false);
+				Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
+						"outputs/test_" + i + ".t", "-1", false);
+
+				svm_train = new svm_train();
+				svm_train.run(new String[] {"-q", "-t", "0", "-c", cost , "outputs/train_" + i,
+						"outputs/train_" + i + ".model" });
+				svm_predict.main(new String[] { "outputs/test_" + i + ".t",
+						"outputs/train_" + i + ".model", "outputs/testout_" + i });
+			}
+			System.out.println("------------------------------------------------");
 		}
 	}
 
