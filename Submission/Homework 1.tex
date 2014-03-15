@@ -1,0 +1,157 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+
+\usepackage{enumerate}
+\usepackage{amsfonts}
+\usepackage{amssymb}
+\usepackage{mathtools}
+\usepackage{algorithm}
+\usepackage{algcompatible}
+\usepackage{algpseudocode}
+\usepackage{array}
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+\usepackage[left=2cm,right=2cm,top=2cm,bottom=2cm]{geometry}
+
+\begin{document}
+	\title{CSE Natural Language Processing}
+	\author{Ankur Mittal\\ \texttt{anmittal@cs.stonybrook.edu}\and Vasudev Bhat\\\texttt{vabhat@cs.stonybrook.edu} }
+	\maketitle
+	\begin{flushleft}
+		{\Large \textbf{Homework 1}}
+	\end{flushleft}
+	\begin{enumerate}
+		\item
+		{\bf Language Model Classifier:}
+		\begin{enumerate}
+			\item Unigram Based Language Model Classifier: For words that do not occur in the training data (i.e. words that occur in positive review only once but not in negative review set or viceversa), we assign an $<$UNKNOWN$>$ tag and calculate the probability of this tag. During classification we apply the probability of this $<$UNKNOWN$>$ tag for all new/unseen words. We performed our tests both with and without Laplace Smoothing. The average success rate across all folds increased by 26\% when we used Laplace smoothing.
+			\begin{center}
+				\begin{tabular}{|c|c|c|}
+				\hline
+				{\bf Fold No.} & {\bf Success \% (With Smoothing)} & {\bf Success \% (Without Smoothing)} \\\hline
+				1 &	81.0	& 54.75 \\\hline
+				2	& 80.5	& 54.25\\\hline
+				3 & 78.75	& 54.0\\\hline
+				4	& 82.25 &	53.25\\\hline
+				5 &	79.5 &	53.75\\\hline
+				{\bf Average } &	{\bf 80.4} &	{\bf 54.0}\\\hline
+
+				\end{tabular} 
+			\end{center}
+			\item Bigram Based Language Model Classifier: In the bigram model, we ignore any new words that occur in the testing set. The average success rate across all folds increased by 23\% when we used Laplace smoothing for the bigram based classifier. We have tabulated the results for the Bigram language model classifier below.
+			\begin{center}
+				\begin{tabular}{|c|c|c|}
+				\hline
+				{\bf Fold No.} & {\bf Success \% (With Smoothing)} & {\bf Success \% (Without Smoothing)} \\\hline
+				1 &	69.75	& 50.0 \\\hline
+				2	& 74.75	& 50.0\\\hline
+				3 & 74.0	& 50.0\\\hline
+				4	& 74.75 &	50.0\\\hline
+				5 &	73.25 &	50.0\\\hline
+				{\bf Average } &	{\bf 73.3} &	{\bf 50.0}\\\hline
+
+				\end{tabular} 
+			\end{center}
+The unigram based classifier performs better than the bigram based classifier since the model becomes more constrained and specific when we use bigrams for training.
+			
+			
+		\end{enumerate}
+
+		\clearpage
+		
+				\item
+		{\bf Perceptron Classifier:}\\
+		%\begin{enumerate}
+			 We implemented the Perceptron Classifier based on the approach mentioned in [1] . We tested with different number of iterations and observed that there was not much change in the accuracy of prediction. The features used here are: presence of unigrams and presence of bigrams. During the learning phase, if a review is wrongly classified, we calculate the correction by substracting the obtained value of the feature vector from the value corresponding to the expected class (1 or -1). But when performing experimentation we observed that this approach was causing over-fitting. Hence we used an alternate approach where we calculate the correction at all times (not just during wrong classification) and then change the weight vector accordingly. We normalize the correction by the size of the feature vector of the document. We multiply the normalized correction with the learning rate parameter and then add or substract these values from the actual weight vector. We tried different learning rates with which we multiply the correction. We have tabulated the results below which show experiments with different parameters. Every trial is a five fold cross-validation trial and we have reported the average accuracy across all the folds. The formula for correction is shown in equation 1..
+			 %\DeclareMathSizes{10}{10}{10}{10}
+			
+			 \begin{equation}
+			 correction=Expected\_Class - {\frac{Obtained\_Value} {sizeof(Feature\_Vector)}}
+			 \end{equation}
+			 
+			
+			\begin{center}
+				\begin{tabular}{|c|c|c|c|c|}
+				\hline
+				{\bf Trial No.} & {\bf Iterations} & {\bf Learning Rate } & {\bf Unigram or} &{\bf Avg Success \%} \\
+				&&&{\bf Bigram}&\\\hline
+				%\multicolumn{5}{c}{Learning Rate = 1.0}\\\hline
+				1 &	1&1.0 &Bigram	& 79.05  \\\hline
+				2&	5&1.0 &Bigram	& 78.7  \\\hline
+				3&	10&1.0 &Bigram	& 78.85 \\\hline
+				%\multicolumn{5}{c}{Learning Rate = 0.7}\\\hline
+				4 &	1& 0.7 &Bigram	& 77.2  \\\hline
+				5&	5& 0.7 &Bigram	& 78.8  \\\hline
+				6&	10& 0.7 &Bigram	& 78.8 \\\hline
+				%\multicolumn{5}{c}{Learning Rate = 1.0}\\\hline
+				7 &	1&1.0 &Unigram	& 82.85 \\\hline
+				8&	5&1.0 &Unigram	& 81.75 \\\hline
+				9&	10&1.0 &Unigram	& 81.8 \\\hline
+				%\multicolumn{5}{c}{Learning Rate = 0.7}\\\hline
+				10 &	1& 0.7 &Unigram	& 83.05 \\\hline
+				11&	5& 0.7&Unigram	& 82.6 \\\hline
+				12&	10& 0.7 &Unigram	&  81.8 \\\hline
+				\end{tabular} 
+			\end{center}
+From the results, we can infer that the unigram based perceptron classifier again performs better than the bigram based perceptron classifier as in the case of Language Model Classifier.				
+	
+		
+
+		%\clearpage
+		\item
+		{\bf SVM Classifier:}\\
+		We used the libsvm[2] library for training and prediction using SVM. We trained the model using unigrams and the frequency/presence of these unigrams in the training set. We experimented with different C values as tabulated below. We were unable to set the regularization parameter in libsvm. The features we used here are presence of words and the frequency of words. We have tabulated the results below which show experiments with different parameters. Every trial is a five fold cross-validation trial and we have reported below the average accuracy across all the folds.
+
+\begin{center}
+				\begin{tabular}{|c|c|c|c|}
+				\hline
+				{\bf Trial No.} & {\bf Presence/Frequency} & {\bf Cost Parameter }  &{\bf Avg Success \%} \\\hline
+				%&&{\bf Bigram}&\\\hline
+				%\multicolumn{5}{c}{Learning Rate = 1.0}\\\hline
+				1 &	Presence &1	& 85.1  \\\hline
+				2&	Presence &10	& 85.1  \\\hline
+				3&	Presence &20	& 85.1 \\\hline
+				%\multicolumn{5}{c}{Learning Rate = 0.7}\\\hline
+				4 &	Presence &30	& 85.1  \\\hline
+				5&	Presence &50	& 85.1  \\\hline
+				6&	Frequency &1	& 66.85 \\\hline
+				%\multicolumn{5}{c}{Learning Rate = 1.0}\\\hline
+				7 &	Frequency &10	& 66.85 \\\hline
+				8&	Frequency &20	&66.85 \\\hline
+				9&	Frequency &30	&66.85 \\\hline
+				%\multicolumn{5}{c}{Learning Rate = 0.7}\\\hline
+				10 &	Frequency &50	&66.85 \\\hline
+				%11&	5&Unigram	& 82.6 \\\hline
+				%12&	10 &Unigram	&  81.8 \\\hline
+				\end{tabular} 
+			\end{center}
+From the results, we can observe that the presence feature performs better than the frequency feature. We did not observe any change by varying the cost parameter. 
+			%\clearpage
+			\item
+			{\bf Error Analysis:} We found 40 reviews which were being wrongly classified by both the classifiers Perceptron and Language Model classifier. We analyzed a few of these reviews manually and observed that the reviews actually indicate a tone that is opposite to the intention (positive or negative) of the reviewer.  For example a positive review ( in file cv050\_11175.txt) contains words that normally indicate a negative tone and these words would be in the negative set of the training data. Hence the classifiers fail to classify such reviews properly. We have listed some of the files from both the positive and negative set below. The listed categories are the actual category of the files which have been predicted wrongly.
+			\begin{center}
+				\begin{tabular}{|c|c|c|c|}
+				\hline
+				{\bf Positive Reviews } & {\bf Negative Reviews} & {\bf Positive Reviews} & {\bf Negative Reviews}\\\hline
+				cv050\_11175.txt&	cv010\_29063.txt81.0	&cv082\_11080.txt & cv104\_19176.txt \\\hline
+				cv214\_12294.txt	& cv262\_13812.txt	& cv420\_28795.txt & cv571\_29292.txt\\\hline
+				cv603\_17694.txt &cv697\_12106.txt	&cv842\_5866.txt &cv835\_20531.txt\\\hline
+				
+
+				\end{tabular} 
+			\end{center}
+To further analyze these errors, we extracted all the common unigrams from the positive set which were classified as negative reviews. We also mined the unigrams from the negative set in the training data and found that there were many unigrams which occured frequently in the negative set which probably influenced these reviews being classified as negative. Now, when these unigrams were found in the positive set in the prediction data, the classifier is confused and predicts the reviews as positives. Some of these words include silly, bastard, stupid and other abusive words.
+			
+
+			\end{enumerate}
+\begin{thebibliography}{1}
+\bibitem{} http://en.wikipedia.org/wiki/Perceptron
+\bibitem{} Chang, Chih-Chung, and Chih-Jen Lin. "LIBSVM: a library for support vector machines." ACM Transactions on Intelligent Systems and Technology (TIST) 2, no. 3 (2011): 27.
+
+%
+%\bibitem{} Anderson, A., Huttenlocher, D., Kleinberg, J., \& Leskovec, J. (2012, August). Discovering value from community activity on focused question answering sites: a case study of stack overflow. {\em In Proceedings of the 18th ACM SIGKDD international conference on Knowledge discovery and data mining} (pp. 850-858). ACM.
+%
+\end{thebibliography}		
+		
+\end{document}
