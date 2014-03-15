@@ -1,9 +1,11 @@
 package edu.sunysb.lm;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.HashMap;
 
@@ -13,6 +15,7 @@ public class Unigram {
 	HashMap<String, Integer> negMap = new HashMap<String, Integer>();
 	HashMap<String, Double> posProb = new HashMap<String, Double>();
 	HashMap<String, Double> negProb = new HashMap<String, Double>();
+	BufferedWriter errorFiles;
 
 	int totalPosWords = 0;
 	int totalNegWords = 0;
@@ -20,7 +23,18 @@ public class Unigram {
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
 	HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
 
-	public static void main(String[] args) {
+	public Unigram() {
+		try {
+			FileWriter fw = new FileWriter("errFiles", true);
+			errorFiles = new BufferedWriter(fw);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+
+	public static void main(String[] args) throws IOException {
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
 		for (int i = 0; i < 5; i++) {
 			Unigram unigram = new Unigram();
@@ -30,7 +44,7 @@ public class Unigram {
 			int totalTest = end - start + 1;
 			unigram.directoryReader(folders[0], true, start, end);
 			unigram.directoryReader(folders[1], false, start, end);
-			
+
 			unigram.fullMap = Helper.buildCumulativeMap(unigram.posMap,
 					unigram.negMap);
 			unigram.fullMapWithUnknown = Helper
@@ -84,9 +98,10 @@ public class Unigram {
 	 * @param end
 	 * @param forPositive
 	 * @return
+	 * @throws IOException
 	 */
 	public int doClassify(String dirName, int start, int end,
-			boolean forPositive) {
+			boolean forPositive) throws IOException {
 		File dirPath = new File(dirName);
 		int successCount = 0;
 		if (dirPath.isDirectory()) {
@@ -96,9 +111,13 @@ public class Unigram {
 					File child = fileList[i];
 					if (classifyFile(child) == forPositive) {
 						successCount++;
+					} else {
+						errorFiles.write(child.getCanonicalPath());
+						errorFiles.write("\n");
 					}
 				}
 			}
+			errorFiles.flush();
 		}
 		return successCount;
 	}

@@ -1,9 +1,11 @@
 package edu.sunysb.perceptron;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,11 +24,13 @@ public class Unigram {
 	int totalNegWords = 0;
 	static double learningRate = 0.7;
 	static int MIN_ITR = 1;
+	BufferedWriter errorFiles;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
 	HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
 	HashMap<String,Double> weightMap=new HashMap<String, Double>();
 	public final boolean COUNTBASED=false;
+
 	public static void main(String[] args) throws IOException {
 		double learningRates[] = {1,0.7};
 		int min_itr[] = {1,5,10};
@@ -42,7 +46,17 @@ public class Unigram {
 		}
 	}
 
-	public static void do_work(){
+	public Unigram() {
+		try {
+			FileWriter fw = new FileWriter("errFiles", true);
+			errorFiles = new BufferedWriter(fw);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void do_work() throws IOException{
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
 		//File dir = new File("outputs");
 		//for(File file: dir.listFiles()) file.delete();
@@ -75,9 +89,10 @@ public class Unigram {
 		System.out.println("\nAverage Success Rate: " + avgSuccess/5);
 	}
 
-	public int doClassify(String dirName, boolean isPositive, int start, int end){//,
+	public int doClassify(String dirName, boolean isPositive, int start, int end) throws IOException{//,
 		//ArrayList<HashMap<String, Integer>> testingSet) {
 		File dirPath = new File(dirName);
+		int successCount = 0;
 		int numPos=0;
 		int numNeg=0;
 		//if (dirPath.isDirectory()) {
@@ -99,21 +114,17 @@ public class Unigram {
 						features.put(word, 1);
 					}
 				}
-				boolean predictedClass=classifyFile(features);
-				if(predictedClass==true){
-					numPos++;
-				}else{
-					numNeg++;
+				if (classifyFile(features) == isPositive) {
+					successCount++;
+				} else {
+					errorFiles.write(child.getCanonicalPath());
+					errorFiles.write("\n");
 				}
 				//testingSet.add(features);
 			}
 		}
-		if(isPositive){
-			return numPos;
-		}else{
-			return numNeg;
-		}
-		//}
+		errorFiles.flush();
+		return successCount;
 	}
 
 

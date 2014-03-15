@@ -1,9 +1,11 @@
 package edu.sunysb.perceptron;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -19,6 +21,7 @@ public class Bigram {
 	int totalPosWords = 0;
 	int totalNegWords = 0;
 	static double  learningRate = 1;
+	BufferedWriter errorFiles;
 	static int MIN_ITR = 5;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
@@ -29,7 +32,7 @@ public class Bigram {
 	public static void main(String[] args) throws IOException {
 
 		double learningRates[] = {1,0.7};
-		int min_itr[] = {1,5,10};
+		int min_itr[] = {1};
 		for(double lr:learningRates) {
 			learningRate = lr;
 			for(int mi:min_itr) {
@@ -45,24 +48,34 @@ public class Bigram {
 
 	}
 
-	public static void do_work() {
+	public Bigram() {
+		try {
+			FileWriter fw = new FileWriter("bierrFiles", true);
+			errorFiles = new BufferedWriter(fw);
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+
+	public static void do_work() throws IOException {
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
 		double avgSuccess = 0;
 		for (int i = 0; i < 5; i++) {
-			Bigram biigram = new Bigram();
+			Bigram bigram = new Bigram();
 			int start = i * 200;
 			int end = start + 199;
 			System.out.println("\nTest Data from: " + start + " - " + end);
-			biigram.directoryReader(folders[0], folders[1], start, end);
+			bigram.directoryReader(folders[0], folders[1], start, end);
 
 			// int posAccuracy=unigram.doClassify(folders[0], true, start,
 			// end);//, unigram.positiveTestingSet);
 			// int negAccuracy=unigram.doClassify(folders[1], false, start,
 			// end);//, unigram.negativeTestingSet);
 
-			int positiveSuccess = biigram.doClassify(folders[0], true, start,
+			int positiveSuccess = bigram.doClassify(folders[0], true, start,
 					end);
-			int negSuccess = biigram.doClassify(folders[1], false, start, end);
+			int negSuccess = bigram.doClassify(folders[1], false, start, end);
 			int totalTest = end - start + 1;
 			avgSuccess += ((negSuccess + positiveSuccess) * 100.0) / (totalTest * 2);
 			System.out.println("Positives=" + positiveSuccess
@@ -80,11 +93,10 @@ public class Bigram {
 		System.out.println("\nAverage Success Rate: " + avgSuccess/5);
 	}
 
-	public int doClassify(String dirName, boolean isPositive, int start, int end) {// ,
+	public int doClassify(String dirName, boolean isPositive, int start, int end) throws IOException {// ,
 		// ArrayList<HashMap<String, Integer>> testingSet) {
 		File dirPath = new File(dirName);
-		int numPos = 0;
-		int numNeg = 0;
+		int successCount = 0;
 		// if (dirPath.isDirectory()) {
 		File[] fileList = dirPath.listFiles();
 		for (int i = 0; i < fileList.length; i++) {
@@ -106,19 +118,17 @@ public class Bigram {
 					}
 				}
 				boolean predictedClass = classifyFile(features);
-				if (predictedClass == true) {
-					numPos++;
+				if (classifyFile(features) == isPositive) {
+					successCount++;
 				} else {
-					numNeg++;
+					errorFiles.write(child.getCanonicalPath());
+					errorFiles.write("\n");
 				}
 				// testingSet.add(features);
 			}
 		}
-		if (isPositive) {
-			return numPos;
-		} else {
-			return numNeg;
-		}
+		errorFiles.flush();
+		return successCount;
 		// }
 	}
 
