@@ -18,7 +18,8 @@ public class Bigram {
 	ArrayList<HashMap<String, Integer>> negativeTestingSet = new ArrayList<HashMap<String, Integer>>();
 	int totalPosWords = 0;
 	int totalNegWords = 0;
-	double learningRate = 1;
+	static double  learningRate = 1;
+	static int MIN_ITR = 5;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
 	HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
@@ -26,9 +27,27 @@ public class Bigram {
 	public final boolean COUNTBASED = false;
 
 	public static void main(String[] args) throws IOException {
-		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
+
+		double learningRates[] = {1,0.7};
+		int min_itr[] = {1,5,10};
+		for(double lr:learningRates) {
+			learningRate = lr;
+			for(int mi:min_itr) {
+				MIN_ITR = mi;
+				System.out.println("-------------------------------------------------------------------------");
+				System.out.println("Perceptron with bigram(presence), learningRates: " + learningRate + ", iterations: " + MIN_ITR);
+				do_work();
+				System.out.println("-------------------------------------------------------------------------");
+			}
+		}
 		// File dir = new File("outputs");
 		// for(File file: dir.listFiles()) file.delete();
+
+	}
+
+	public static void do_work() {
+		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
+		double avgSuccess = 0;
 		for (int i = 0; i < 5; i++) {
 			Bigram biigram = new Bigram();
 			int start = i * 200;
@@ -45,7 +64,7 @@ public class Bigram {
 					end);
 			int negSuccess = biigram.doClassify(folders[1], false, start, end);
 			int totalTest = end - start + 1;
-
+			avgSuccess += ((negSuccess + positiveSuccess) * 100.0) / (totalTest * 2);
 			System.out.println("Positives=" + positiveSuccess
 					+ ", percent success: " + (positiveSuccess * 100.0)
 					/ totalTest);
@@ -56,29 +75,9 @@ public class Bigram {
 					+ ((negSuccess + positiveSuccess) * 100.0)
 					/ (totalTest * 2));
 
-			// Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
-			// "outputs/train_" + i , "+1", true);
-			// Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
-			// "outputs/train_" + i , "-1", true);
-			//
-			// Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
-			// "outputs/test_" + i + ".t", "+1", true);
-			// Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
-			// "outputs/test_" + i + ".t", "-1", true);
-
-			// for(File file: dir.listFiles()) file.delete();
-			// System.out.println("\nCalculating with Frequency");
-			// Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
-			// "outputs/train_" + i , "+1", false);
-			// Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
-			// "outputs/train_" + i , "-1", false);
-			//
-			// Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
-			// "outputs/test_" + i + ".t", "+1", false);
-			// Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
-			// "outputs/test_" + i + ".t", "-1", false);
 
 		}
+		System.out.println("\nAverage Success Rate: " + avgSuccess/5);
 	}
 
 	public int doClassify(String dirName, boolean isPositive, int start, int end) {// ,
@@ -163,7 +162,7 @@ public class Bigram {
 						.abs(fileReader(poschild, positiveTrainingSet, true));
 
 			}
-		} while (err / (posfileList.length * 2 - 2 * (start - end + 1)) > 1);
+		} while (err / (posfileList.length * 2 - 2 * (start - end + 1)) > 1 || itr < MIN_ITR);
 	}
 
 	public double fileReader(File file,

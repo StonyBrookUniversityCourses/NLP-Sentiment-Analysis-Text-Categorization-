@@ -20,16 +20,33 @@ public class Unigram {
 	ArrayList<HashMap<String,Integer>> negativeTestingSet = new ArrayList<HashMap<String,Integer>>();
 	int totalPosWords = 0;
 	int totalNegWords = 0;
-	double learningRate = 1;
+	static double learningRate = 0.7;
+	static int MIN_ITR = 1;
 	HashMap<String, Count> fullMap = new HashMap<String, Count>();
 	HashMap<String, Count> fullMapWithUnknown = new HashMap<String, Count>();
 	HashMap<String, Probability> probWithSmoothing = new HashMap<String, Probability>();
 	HashMap<String,Double> weightMap=new HashMap<String, Double>();
 	public final boolean COUNTBASED=false;
 	public static void main(String[] args) throws IOException {
+		double learningRates[] = {1,0.7};
+		int min_itr[] = {1,5,10};
+		for(double lr:learningRates) {
+			learningRate = lr;
+			for(int mi:min_itr) {
+				MIN_ITR = mi;
+				System.out.println("-------------------------------------------------------------------------");
+				System.out.println("Perceptron with unigram(presence), learningRates: " + learningRate + ", iterations: " + MIN_ITR);
+				do_work();
+				System.out.println("-------------------------------------------------------------------------");
+			}
+		}
+	}
+
+	public static void do_work(){
 		String[] folders = { "txt_sentoken\\pos", "txt_sentoken\\neg" };
 		//File dir = new File("outputs");
 		//for(File file: dir.listFiles()) file.delete();
+		double avgSuccess = 0;
 		for (int i = 0; i < 5; i++) {
 			Unigram unigram = new Unigram();
 			int start = i * 200;
@@ -45,7 +62,7 @@ public class Unigram {
 			int totalTest = end - start + 1;
 
 
-
+			avgSuccess += ((negSuccess + positiveSuccess) * 100.0) / (totalTest * 2);
 			System.out.println("Positives=" + positiveSuccess
 					+ ", percent success: " + (positiveSuccess * 100.0)
 					/ totalTest);
@@ -54,31 +71,8 @@ public class Unigram {
 			System.out.println("Total Success=" + (negSuccess + positiveSuccess)
 					+ ", percent success: " + ((negSuccess + positiveSuccess) * 100.0) / (totalTest*2));
 
-
-//			Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
-//					"outputs/train_" + i , "+1", true);
-//			Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
-//					"outputs/train_" + i , "-1", true);
-//
-//			Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
-//					"outputs/test_" + i  + ".t", "+1", true);
-//			Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
-//					"outputs/test_" + i + ".t", "-1", true);
-
-
-			//for(File file: dir.listFiles()) file.delete();
-			//System.out.println("\nCalculating with Frequency");
-//			Helper.createOutput(unigram.positiveTrainingSet, unigram.fullMap,
-//					"outputs/train_" + i , "+1", false);
-//			Helper.createOutput(unigram.negativeTrainingSet, unigram.fullMap,
-//					"outputs/train_" + i , "-1", false);
-//
-//			Helper.createOutput(unigram.positiveTestingSet, unigram.fullMap,
-//					"outputs/test_" + i  + ".t", "+1", false);
-//			Helper.createOutput(unigram.negativeTestingSet, unigram.fullMap,
-//					"outputs/test_" + i + ".t", "-1", false);
-
 		}
+		System.out.println("\nAverage Success Rate: " + avgSuccess/5);
 	}
 
 	public int doClassify(String dirName, boolean isPositive, int start, int end){//,
@@ -162,7 +156,7 @@ public class Unigram {
 				err += Math.abs(fileReader(poschild, positiveTrainingSet,true));
 
 			}
-		}while(err / (posfileList.length * 2 - 2* (start -end +1))  > 1);
+		}while(err / (posfileList.length * 2 - 2* (start -end +1))  > 1 || itr < MIN_ITR);
 	}
 
 	public double fileReader(File file, ArrayList<HashMap<String,Integer>> trainingSet, boolean isPositive) {
@@ -197,6 +191,7 @@ public class Unigram {
 					categoryNum+=weightMap.get(key)*val;
 				}
 			}
+
 			double correction = learningRate * ((isPositive? 1 : -1 ) - categoryNum/words.size());
 			keySet = words.keySet();
 			iter = keySet.iterator();
